@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SavTok - Ultimate All-in-One</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- ==========================================================
+       ADSTERRA — Popunder / Social Bar script
+       Daftar dulu di https://adsterra.com -> ambil script dari
+       dashboard (Direct Link / Social Bar / Popunder), lalu
+       ganti baris di bawah ini dengan punya kamu sendiri.
+       Format Adsterra biasanya kayak gini:
+       <script src="//pl000000.highcpmrevenuegate.com/xx/xx/xx/xxxxxxxx.js"></script>
+       ========================================================== -->
+  <!-- <script type="text/javascript" src="//GANTI-DENGAN-SCRIPT-ADSTERRA-KAMU.js"></script> -->
+
+  <style>
+    :root{
+      --ink:#15161A;
+      --ink-soft:#6B6B72;
+      --bg:#FAFAF9;
+      --accent:#2F5DFF;
+      --accent-dark:#1E42C9;
+      --border:#E7E5E0;
+      --border-soft:#F0EFEA;
+    }
+    body {
+      background-color: var(--bg);
+      font-family: 'Inter', sans-serif;
+      color: var(--ink);
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background-color: var(--border); border-radius: 4px; }
+    .accent-text{ color: var(--accent); }
+    .accent-bg{ background-color: var(--accent); }
+    .accent-bg:hover{ background-color: var(--accent-dark); }
+    .ink-bg{ background-color: var(--ink); }
+    .ink-bg:hover{ background-color: #000; }
+    .font-750{ font-weight: 750; }
+  </style>
+</head>
+<body class="text-[15px] antialiased min-h-screen flex flex-col relative">
+
+  <!-- Navbar -->
+  <nav class="w-full max-w-6xl mx-auto px-6 py-4 flex justify-between items-center sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b" style="border-color:var(--border-soft)">
+    <div class="flex items-center space-x-2.5 font-750 tracking-tight" style="font-size: 22px;">
+      <i class="fa-solid fa-download accent-text" style="font-size: 19px;"></i>
+      <span>Sav<span class="accent-text">Tok</span></span>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="flex-grow flex flex-col items-center justify-center px-4 w-full max-w-4xl mx-auto text-center my-12">
+    <h1 class="text-3xl md:text-5xl font-750 mb-3 tracking-tight">
+      SavTok TikTok Downloader
+    </h1>
+    <p class="mb-8 max-w-xl text-sm md:text-base" style="color:var(--ink-soft)">
+      Download Video TikTok HD tanpa watermark, Audio MP3, hingga Slide Foto (Photo Mode) dalam satu klik.
+    </p>
+
+    <!-- Input & Aksi -->
+    <div class="w-full max-w-3xl relative flex items-center bg-white border-2 rounded-lg p-1.5 shadow-sm transition duration-200" style="border-color:var(--border)" id="inputWrap">
+      <div id="platformBadge" class="absolute left-3.5 text-lg flex items-center pointer-events-none" style="color:var(--ink-soft)">
+        <i class="fa-solid fa-link"></i>
+      </div>
+
+      <input type="text" id="videoUrl" oninput="detectPlatform(this.value)" placeholder="https://vt.tiktok.com/..."
+        class="w-full pl-12 pr-40 sm:pr-48 py-3 outline-none bg-transparent text-sm" autocomplete="off">
+
+      <div class="absolute right-1.5 flex items-center space-x-1">
+        <button onclick="autoPaste()" title="Tempel dari Clipboard" class="hover:bg-gray-100 px-3 py-2.5 rounded-md text-xs transition flex items-center space-x-1" style="color:var(--ink-soft)">
+          <i class="fa-solid fa-paste"></i>
+          <span class="hidden sm:inline">Paste</span>
+        </button>
+
+        <button id="submitBtn" onclick="simulateSearch()"
+          class="accent-bg text-white text-xs sm:text-sm font-750 py-2.5 px-5 rounded-md transition flex items-center space-x-1.5">
+          <span>Download</span>
+          <i class="fa-solid fa-download text-xs"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div id="errorMsg" class="hidden w-full max-w-3xl mt-3 text-left text-xs md:text-sm px-4 py-2.5 rounded-lg" style="background:#FEF2F2; color:#B91C1C; border:1px solid #FCA5A5;">
+      <i class="fa-solid fa-circle-exclamation mr-1.5"></i><span id="errorMsgText"></span>
+    </div>
+
+
+    <!-- HASIL DOWNLOAD -->
+    <div id="resultCard" class="hidden w-full max-w-3xl mt-12 text-left border-t pt-8" style="border-color:var(--border-soft)">
+
+      <div class="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-5 mb-6">
+        <div class="relative w-24 h-24 md:w-32 md:h-32 bg-gray-100 rounded-lg overflow-hidden shrink-0">
+          <img id="resultThumb" src="" alt="Thumbnail" class="w-full h-full object-cover">
+        </div>
+
+        <div class="flex flex-col flex-grow w-full">
+          <h3 id="resultTitle" class="font-750 leading-snug text-base md:text-lg line-clamp-2"></h3>
+          <div class="flex items-center space-x-2 mt-2 mb-3">
+            <div class="w-6 h-6 bg-gray-200 rounded-full overflow-hidden">
+              <img id="resultAvatar" src="" alt="User" class="w-full h-full object-cover">
+            </div>
+            <span id="resultUsername" class="text-xs md:text-sm font-normal" style="color:var(--ink-soft)"></span>
+          </div>
+
+          <div class="relative bg-white border rounded-lg p-3" style="border-color:var(--border)">
+            <p id="captionText" class="text-xs md:text-sm font-normal h-16 overflow-y-auto custom-scrollbar pr-7" style="color:var(--ink-soft)"></p>
+            <button onclick="copyCaption()" class="absolute top-2 right-2 w-7 h-7 flex items-center justify-center bg-white border rounded hover:bg-gray-50 transition" style="border-color:var(--border); color:var(--ink-soft)" title="Copy Caption">
+              <i class="fa-regular fa-copy text-xs"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Video & Audio -->
+      <div id="mediaSection" class="mb-6 hidden">
+        <h4 class="text-xs md:text-sm font-750 mb-3"><i class="fa-solid fa-film mr-1 accent-text"></i> Video & Audio</h4>
+        <div id="mediaButtons" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
+      </div>
+
+      <!-- Galeri Foto -->
+      <div id="photoSection" class="hidden">
+        <h4 class="text-xs md:text-sm font-750 mb-3"><i class="fa-solid fa-images mr-1 accent-text"></i> Photo Mode (Slide Foto)</h4>
+        <div id="photoGrid" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+      </div>
+
+    </div>
+
+    <!-- FAQ -->
+    <div class="w-full max-w-3xl mt-16 text-left border-t pt-10" style="border-color:var(--border-soft)">
+      <h2 class="text-lg md:text-xl font-750 mb-6 text-center tracking-tight">Frequently Asked Questions</h2>
+
+      <div class="space-y-3">
+        <div class="border-b pb-3" style="border-color:var(--border-soft)">
+          <button onclick="toggleFaq(this)" class="w-full py-1.5 text-left flex justify-between items-center text-sm md:text-base font-750 transition">
+            <span>Bagaimana cara mendownload video di SavTok?</span>
+            <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200"></i>
+          </button>
+          <div class="faq-content hidden pt-1.5 pb-2 text-xs md:text-sm leading-relaxed" style="color:var(--ink-soft)">
+            Cukup salin link video TikTok, lalu tempel (paste) ke kolom input di bagian atas dan klik tombol Download.
+          </div>
+        </div>
+
+        <div class="border-b pb-3" style="border-color:var(--border-soft)">
+          <button onclick="toggleFaq(this)" class="w-full py-1.5 text-left flex justify-between items-center text-sm md:text-base font-750 transition">
+            <span>Apakah layanan SavTok ini gratis?</span>
+            <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200"></i>
+          </button>
+          <div class="faq-content hidden pt-1.5 pb-2 text-xs md:text-sm leading-relaxed" style="color:var(--ink-soft)">
+            Ya, seratus persen gratis! Kamu bisa mendownload video, audio MP3, atau slide foto sebanyak yang diinginkan tanpa dipungut biaya.
+          </div>
+        </div>
+
+        <div class="border-b pb-3" style="border-color:var(--border-soft)">
+          <button onclick="toggleFaq(this)" class="w-full py-1.5 text-left flex justify-between items-center text-sm md:text-base font-750 transition">
+            <span>Apakah video TikTok diunduh tanpa watermark?</span>
+            <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200"></i>
+          </button>
+          <div class="faq-content hidden pt-1.5 pb-2 text-xs md:text-sm leading-relaxed" style="color:var(--ink-soft)">
+            Tentu saja. SavTok menyediakan opsi unduhan video HD tanpa tanda air (no watermark) agar hasilnya bersih dan jernih.
+          </div>
+        </div>
+
+        <div class="border-b pb-3" style="border-color:var(--border-soft)">
+          <button onclick="toggleFaq(this)" class="w-full py-1.5 text-left flex justify-between items-center text-sm md:text-base font-750 transition">
+            <span>Platform apa saja yang didukung oleh SavTok?</span>
+            <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200"></i>
+          </button>
+          <div class="faq-content hidden pt-1.5 pb-2 text-xs md:text-sm leading-relaxed" style="color:var(--ink-soft)">
+            Saat ini SavTok fokus khusus untuk TikTok — video (HD tanpa watermark), audio, dan Photo Mode (slide foto).
+          </div>
+        </div>
+
+        <div class="border-b pb-3" style="border-color:var(--border-soft)">
+          <button onclick="toggleFaq(this)" class="w-full py-1.5 text-left flex justify-between items-center text-sm md:text-base font-750 transition">
+            <span>Di mana hasil file yang sudah didownload tersimpan?</span>
+            <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200"></i>
+          </button>
+          <div class="faq-content hidden pt-1.5 pb-2 text-xs md:text-sm leading-relaxed" style="color:var(--ink-soft)">
+            File akan otomatis tersimpan di folder Downloads bawaan perangkat HP atau komputer yang kamu gunakan.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tentang -->
+    <div class="w-full max-w-3xl mt-12 text-left border-t pt-10" style="border-color:var(--border-soft)">
+      <h2 class="text-lg md:text-xl font-750 mb-4 text-center tracking-tight">Tentang SavTok</h2>
+      <div class="text-xs md:text-sm leading-relaxed space-y-3" style="color:var(--ink-soft)">
+        <p>
+          <strong class="text-[var(--ink)]" style="color:var(--ink)">SavTok</strong> adalah platform pengunduh video <strong>TikTok</strong> yang dirancang untuk memudahkan kamu menyimpan konten favorit dengan cepat, bersih, dan tanpa ribet.
+        </p>
+        <p>
+          Kami berkomitmen untuk selalu menyediakan layanan yang praktis, ringan, dan dapat diakses secara gratis oleh siapa saja tanpa batasan perangkat. Nikmati kemudahan mengunduh video HD tanpa watermark, audio MP3 original, hingga slide foto berkualitas tinggi hanya dalam satu klik.
+        </p>
+      </div>
+    </div>
+
+    <!-- Halaman -->
+    <div class="w-full max-w-3xl mt-8 text-left border-t pt-6" style="border-color:var(--border-soft)">
+      <h2 class="text-sm md:text-base font-750 mb-3 text-center tracking-tight" style="color:var(--ink-soft)">Halaman</h2>
+      <div class="flex flex-col items-center space-y-1.5 text-xs md:text-sm font-normal">
+        <a href="#kontak" onclick="openPageModal('Kontak & Laporan Penyalahgunaan')" class="accent-text hover:underline transition">Kontak & Laporan Penyalahgunaan</a>
+        <a href="#ketentuan" onclick="openPageModal('Ketentuan Layanan')" class="accent-text hover:underline transition">Ketentuan Layanan</a>
+        <a href="#privasi" onclick="openPageModal('Kebijakan Privasi')" class="accent-text hover:underline transition">Kebijakan Privasi</a>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full py-6 text-center border-t text-xs" style="border-color:var(--border-soft); color:var(--ink-soft)">
+    &copy; 2026 SavTok Downloader. All rights reserved.
+  </footer>
+
+  <!-- Modal Iklan -->
+  <div id="adModal" class="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center hidden">
+    <div class="bg-white w-11/12 max-w-md rounded-2xl overflow-hidden shadow-2xl relative">
+      <div id="adBox" class="bg-gray-100 h-44 flex items-center justify-center flex-col relative border-b overflow-hidden" style="border-color:var(--border)">
+        <!-- ==================================================
+             SLOT BANNER ADSTERRA
+             Ganti isi div "adsterra-banner-slot" di bawah dengan
+             script banner (300x250 / responsive) dari dashboard
+             Adsterra kamu. Selama belum diganti, placeholder ini
+             yang tampil.
+             ================================================== -->
+        <div id="adsterra-banner-slot" class="w-full h-full flex items-center justify-center">
+          <i class="fa-solid fa-bullhorn text-3xl mb-2" style="color:var(--ink-soft)"></i>
+          <p class="text-sm ml-2" style="color:var(--ink-soft)">Tempat Iklan Cuann</p>
+        </div>
+        <div class="absolute top-3 right-3 bg-black bg-opacity-40 text-white text-[10px] px-2 py-0.5 rounded">Ad</div>
+      </div>
+      <div class="p-5 text-center">
+        <h3 class="text-lg font-750 mb-1.5">Menyiapkan File <span id="adResText"></span>...</h3>
+        <p id="adDescText" class="mb-5 text-xs" style="color:var(--ink-soft)">Harap tunggu sebentar, link download premium kamu sedang di-generate.</p>
+        <div id="adTimerContainer" class="flex justify-center items-center space-x-2 text-lg mb-5 accent-text">
+          <i class="fa-solid fa-spinner fa-spin"></i><span id="adCountdown">5</span> s
+        </div>
+        <button id="adContinueBtn" class="hidden w-full accent-bg text-white text-sm font-750 py-2.5 rounded-xl transition">
+          <i class="fa-solid fa-download mr-1 text-xs"></i> Download
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Halaman -->
+  <div id="pageModal" class="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center hidden">
+    <div class="bg-white w-11/12 max-w-lg rounded-2xl overflow-hidden shadow-2xl relative p-6 text-left">
+      <div class="flex justify-between items-center mb-4 border-b pb-3" style="border-color:var(--border)">
+        <h3 id="pageModalTitle" class="text-lg font-750">Judul Halaman</h3>
+        <button onclick="closePageModal()" class="text-lg px-2" style="color:var(--ink-soft)"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="pageModalContent" class="text-xs md:text-sm leading-relaxed space-y-3 max-h-80 overflow-y-auto custom-scrollbar pr-2" style="color:var(--ink-soft)">
+      </div>
+      <div class="mt-6 text-right">
+        <button onclick="closePageModal()" class="bg-gray-100 hover:bg-gray-200 text-xs md:text-sm px-4 py-2 rounded-lg transition">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =====================================================================
+    // KONFIGURASI API — SavTok versi fokus TikTok saja
+    // Pakai API publik gratis tikwm.com, tanpa key, langsung jalan.
+    // =====================================================================
+    const API_CONFIG = {
+      demoMode: false  // true = paksa pakai data dummy (untuk testing tampilan)
+    };
+
+    const PLATFORM_PATTERNS = {
+      tiktok: /^https?:\/\/(www\.|vt\.|vm\.)?tiktok\.com\/.+/i,
+    };
+
+    function validateUrl(url) {
+      url = (url || '').trim();
+      if (!url) return { valid: false, error: 'Link tidak boleh kosong.' };
+      for (const [platform, regex] of Object.entries(PLATFORM_PATTERNS)) {
+        if (regex.test(url)) return { valid: true, platform };
+      }
+      return { valid: false, error: 'Link tidak dikenali. Pastikan link berasal dari TikTok (tiktok.com, vt.tiktok.com, atau vm.tiktok.com).' };
+    }
+
+    function showError(msg) {
+      const box = document.getElementById('errorMsg');
+      document.getElementById('errorMsgText').innerText = msg;
+      box.classList.remove('hidden');
+    }
+    function hideError() {
+      document.getElementById('errorMsg').classList.add('hidden');
+    }
+
+    async function autoPaste() {
+      try {
+        const text = await navigator.clipboard.readText();
+        const inputField = document.getElementById('videoUrl');
+        inputField.value = text;
+        detectPlatform(text);
+      } catch (err) {
+        alert("Gagal membaca clipboard. Izinkan akses clipboard di browser kamu ya!");
+      }
+    }
+
+    function detectPlatform(url) {
+      const badge = document.getElementById('platformBadge');
+      if (url.includes('tiktok.com')) {
+        badge.innerHTML = '<i class="fa-brands fa-tiktok text-black"></i>';
+      } else {
+        badge.innerHTML = '<i class="fa-solid fa-link" style="color:var(--ink-soft)"></i>';
+      }
+    }
+
+    function toggleFaq(button) {
+      const content = button.nextElementSibling;
+      const icon = button.querySelector('i');
+      content.classList.toggle('hidden');
+      icon.classList.toggle('rotate-180');
+    }
+
+    // Ganti nama fungsi lama (simulateSearch) -> handleDownloadRequest.
+    // Tombol di HTML (onclick="simulateSearch()") tetap dipanggil lewat alias di bawah.
+    async function handleDownloadRequest() {
+      const urlInput = document.getElementById('videoUrl').value;
+      const resultCard = document.getElementById('resultCard');
+      const submitBtn = document.getElementById('submitBtn');
+      hideError();
+
+      const check = validateUrl(urlInput);
+      if (!check.valid) { showError(check.error); return; }
+
+      const originalBtnText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-sm"></i>';
+      submitBtn.disabled = true;
+      resultCard.classList.add('hidden');
+
+      try {
+        const data = await fetchMediaInfo(urlInput, check.platform);
+        renderResult(data);
+        resultCard.classList.remove('hidden');
+        resultCard.scrollIntoView({ behavior: 'smooth' });
+      } catch (err) {
+        console.error(err);
+        showError(err.message || 'Gagal memproses link. Coba lagi beberapa saat, atau pastikan link masih aktif.');
+      } finally {
+        submitBtn.innerHTML = originalBtnText;
+        submitBtn.disabled = false;
+      }
+    }
+    const simulateSearch = handleDownloadRequest; // alias biar tombol lama tetap jalan
+
+    async function fetchMediaInfo(url, platform) {
+      if (API_CONFIG.demoMode) return demoData();
+      if (platform === 'tiktok') return fetchTikTok(url);
+      throw new Error('Platform tidak didukung. SavTok saat ini fokus khusus TikTok.');
+    }
+
+    function demoData() {
+      return new Promise(resolve => {
+        setTimeout(() => resolve({
+          title: 'Contoh Postingan (Mode Demo)',
+          username: '@demo_user',
+          thumbnail: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=400&q=80',
+          avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
+          caption: 'Ini contoh caption. Set API_CONFIG.demoMode = false untuk data asli.',
+          video: [
+            { label: 'HD (No Watermark)', sub: 'Download MP4', url: '#', premium: true },
+            { label: 'SD (Watermark)', sub: 'Download MP4', url: '#' },
+            { label: 'Audio Original', sub: 'Download MP3', url: '#' },
+          ],
+          photos: []
+        }), 1200);
+      });
+    }
+
+    // TikTok — API publik gratis tikwm.com, tanpa key, langsung jalan.
+    async function fetchTikTok(url) {
+      const res = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`);
+      if (!res.ok) throw new Error(`TikTok API error: ${res.status}`);
+      const json = await res.json();
+      if (json.code !== 0 || !json.data) throw new Error(json.msg || 'Gagal ambil data TikTok. Coba link lain.');
+      const d = json.data;
+
+      return {
+        title: d.title || 'Tanpa judul',
+        username: d.author?.unique_id ? `@${d.author.unique_id}` : (d.author?.nickname || ''),
+        thumbnail: d.cover || d.origin_cover || '',
+        avatar: d.author?.avatar || '',
+        caption: d.title || '',
+        video: [
+          { label: 'HD (No Watermark)', sub: 'Download MP4', url: d.hdplay || d.play || '#', premium: true },
+          { label: 'SD (Watermark)', sub: 'Download MP4', url: d.wmplay || '#' },
+          { label: 'Audio Original', sub: 'Download MP3', url: d.music || '#' },
+        ],
+        photos: (d.images || []).map(imgUrl => ({ url: imgUrl, thumbnail: imgUrl }))
+      };
+    }
+
+    function renderResult(data) {
+      document.getElementById('resultTitle').innerText = data.title;
+      document.getElementById('resultUsername').innerText = data.username;
+      document.getElementById('resultThumb').src = data.thumbnail;
+      document.getElementById('resultAvatar').src = data.avatar;
+      document.getElementById('captionText').innerText = data.caption;
+
+      const mediaSection = document.getElementById('mediaSection');
+      const mediaButtons = document.getElementById('mediaButtons');
+      mediaButtons.innerHTML = '';
+      if (data.video && data.video.length) {
+        data.video.forEach(item => {
+          const btn = document.createElement('button');
+          btn.className = item.premium
+            ? 'ink-bg text-white text-xs md:text-sm py-2.5 rounded-lg transition flex flex-col items-center justify-center'
+            : 'bg-white border text-xs md:text-sm py-2.5 rounded-lg transition flex flex-col items-center justify-center';
+          if (!item.premium) btn.style.borderColor = 'var(--border)';
+          btn.innerHTML = `<span class="mb-0.5 font-750">${item.premium ? '<i class="fa-solid fa-crown text-[10px] accent-text"></i> ' : ''}${item.label}</span><span class="text-[11px] font-normal ${item.premium ? 'opacity-70' : ''}" ${item.premium ? '' : 'style="color:var(--ink-soft)"'}>${item.sub}</span>`;
+          btn.onclick = () => reqDownloadWithAd(item.label, item.url, item.premium);
+          mediaButtons.appendChild(btn);
+        });
+        mediaSection.classList.remove('hidden');
+      } else {
+        mediaSection.classList.add('hidden');
+      }
+
+      const photoSection = document.getElementById('photoSection');
+      const photoGrid = document.getElementById('photoGrid');
+      photoGrid.innerHTML = '';
+      if (data.photos && data.photos.length) {
+        data.photos.forEach((photo, i) => {
+          const div = document.createElement('div');
+          div.className = 'relative aspect-square bg-gray-100 rounded-lg overflow-hidden group';
+          div.innerHTML = `<img src="${photo.thumbnail || photo.url}" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <button class="accent-bg text-white text-xs py-1.5 px-3 rounded">Download HD</button>
+            </div>`;
+          div.querySelector('button').onclick = () => directDownload(`Slide ${i + 1}`, photo.url);
+          photoGrid.appendChild(div);
+        });
+        photoSection.classList.remove('hidden');
+      } else {
+        photoSection.classList.add('hidden');
+      }
+    }
+
+    function copyCaption() {
+      const captionText = document.getElementById('captionText').innerText;
+      navigator.clipboard.writeText(captionText).then(() => {
+        alert("Caption berhasil disalin! 📋");
+      }).catch(err => {
+        console.error('Gagal copy: ', err);
+      });
+    }
+
+    async function directDownload(type, link) {
+      if (!link || link === '#') { showError('Link download belum tersedia (mode demo).'); return; }
+
+      // Tentukan nama & ekstensi file dari jenisnya.
+      const safeName = (document.getElementById('resultTitle').innerText || 'savtok').slice(0, 40).replace(/[^\w\-]+/g, '_');
+      let ext = 'mp4';
+      if (/audio/i.test(type)) ext = 'mp3';
+      else if (/slide/i.test(type)) ext = 'jpg';
+      const filename = `${safeName}_${type}`.replace(/[^\w\-]+/g, '_') + '.' + ext;
+
+      // Buka tab kosong DULU, selagi masih di dalam user gesture (klik tombol).
+      // Kalau nanti fetch gagal (CORS) dan kita baru window.open() setelah await,
+      // browser mobile suka nganggep gesture-nya udah basi lalu block popup-nya
+      // diam-diam (gak ada tab, gak ada error). Trik ini nyimpen "izin" popup
+      // dari awal, tinggal diarahin (redirect) belakangan kalau perlu.
+      const preOpenedTab = window.open('', '_blank');
+
+      try {
+        // Fetch file sebagai blob supaya browser benar-benar men-download
+        // dan menyimpannya ke perangkat, bukan cuma membuka tab baru.
+        const res = await fetch(link);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const blob = await res.blob();
+        const blobUrl = URL.createObjectURL(blob);
+
+        // Fetch sukses -> gak butuh tab kosong itu lagi, tutup.
+        if (preOpenedTab) preOpenedTab.close();
+
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+      } catch (err) {
+        console.error('Gagal fetch untuk download langsung, fallback buka tab baru:', err);
+        // Kemungkinan diblok CORS oleh server sumber — arahkan tab yang tadi
+        // sudah dibuka (masih valid walau gesture sudah lewat) ke link asli,
+        // supaya user tetap bisa simpan manual (long-press/Save As).
+        if (preOpenedTab) {
+          preOpenedTab.location.href = link;
+        } else {
+          // Kalau browser dari awal udah nge-block window.open('', '_blank')
+          // (jarang terjadi), coba window.open biasa sebagai upaya terakhir.
+          window.open(link, '_blank');
+        }
+      }
+    }
+
+    function openPageModal(pageName) {
+      const modal = document.getElementById('pageModal');
+      const titleEl = document.getElementById('pageModalTitle');
+      const contentEl = document.getElementById('pageModalContent');
+
+      titleEl.innerText = pageName;
+
+      if (pageName === 'Kontak & Laporan Penyalahgunaan') {
+        contentEl.innerHTML = `
+          <p>Jika kamu memiliki pertanyaan, saran, atau ingin melaporkan konten/penyalahgunaan terkait layanan kami, silakan hubungi tim kami.</p>
+          <p><strong>Email:</strong> support@savtok.com</p>
+          <p>Kami akan merespons laporan atau pertanyaan kamu dalam kurun waktu 1x24 jam hari kerja.</p>
+        `;
+      } else if (pageName === 'Ketentuan Layanan') {
+        contentEl.innerHTML = `
+          <p>1. <strong>Penerimaan Ketentuan:</strong> Dengan mengakses dan menggunakan SavTok, kamu menyetujui untuk terikat dengan ketentuan layanan ini.</p>
+          <p>2. <strong>Penggunaan yang Wajar:</strong> Layanan ini disediakan gratis untuk penggunaan pribadi dan non-komersial.</p>
+          <p>3. <strong>Tanggung Jawab Pengguna:</strong> Pengguna bertanggung jawab penuh atas hak cipta konten yang diunduh dan memastikan tidak melanggar hukum yang berlaku di wilayah masing-masing.</p>
+        `;
+      } else if (pageName === 'Kebijakan Privasi') {
+        contentEl.innerHTML = `
+          <p>1. <strong>Data Pengguna:</strong> Kami tidak menyimpan riwayat tautan atau file video apa pun yang kamu masukkan atau unduh melalui platform SavTok.</p>
+          <p>2. <strong>Cookie & Iklan:</strong> Situs ini mungkin menggunakan pihak ketiga untuk penayangan iklan guna mendukung operasional server gratis kami.</p>
+          <p>3. <strong>Keamanan:</strong> Kami berkomitmen menjaga privasi dan keamanan pengunjung semaksimal mungkin.</p>
+        `;
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closePageModal() {
+      document.getElementById('pageModal').classList.add('hidden');
+    }
+
+    let countdownInterval;
+    function reqDownloadWithAd(type, link, withCountdown) {
+      const modal = document.getElementById('adModal');
+      const countdownEl = document.getElementById('adCountdown');
+      const timerContainer = document.getElementById('adTimerContainer');
+      const continueBtn = document.getElementById('adContinueBtn');
+      const adBox = document.getElementById('adBox');
+      const descText = document.getElementById('adDescText');
+      document.getElementById('adResText').innerText = type;
+
+      modal.classList.remove('hidden');
+
+      if (!withCountdown) {
+        // SD & Audio: modal tampil tanpa kotak iklan & tanpa countdown,
+        // langsung kasih tombol Download.
+        adBox.classList.add('hidden');
+        descText.innerText = 'File kamu sudah siap, klik tombol di bawah untuk mendownload.';
+        if (countdownInterval) clearInterval(countdownInterval);
+        timerContainer.classList.add('hidden');
+        timerContainer.classList.remove('flex');
+        continueBtn.classList.remove('hidden');
+        continueBtn.onclick = function() {
+          modal.classList.add('hidden');
+          directDownload(type, link);
+        };
+        return;
+      }
+
+      // HD (No Watermark): tetap pakai kotak iklan + countdown 5 detik.
+      adBox.classList.remove('hidden');
+      descText.innerText = 'Harap tunggu sebentar, link download premium kamu sedang di-generate.';
+      timerContainer.classList.remove('hidden');
+      continueBtn.classList.add('hidden');
+      timerContainer.classList.add('flex');
+
+      let timeLeft = 5;
+      countdownEl.innerText = timeLeft;
+
+      countdownInterval = setInterval(() => {
+        timeLeft--;
+        countdownEl.innerText = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(countdownInterval);
+          timerContainer.classList.add('hidden');
+          timerContainer.classList.remove('flex');
+          continueBtn.classList.remove('hidden');
+
+          continueBtn.onclick = function() {
+            modal.classList.add('hidden');
+            directDownload(type, link);
+          };
+        }
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
